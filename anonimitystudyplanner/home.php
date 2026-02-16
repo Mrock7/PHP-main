@@ -1,18 +1,21 @@
 <?php
-include_once('config.php');
 session_start();
+require_once('config.php');
 
-// Fetch all students for display
-$sql = "SELECT Student, grade FROM students";
-$selectStudents = $conn->prepare($sql);
-$selectStudents->execute();
-$students_data = $selectStudents->fetchAll();
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit;
+}
 
-// Count teachers (users with is_admin = 1)
-$sql2 = "SELECT COUNT(*) AS total_teachers FROM users WHERE is_admin = 1";
-$selectTeachers = $conn->prepare($sql2);
-$selectTeachers->execute();
-$teacher_count = $selectTeachers->fetch(PDO::FETCH_ASSOC)['total_teachers'];
+$sql = "SELECT user, grade FROM users WHERE role = 'student'";
+$stmt = $conn->prepare($sql);
+$stmt->execute();
+$students_data = $stmt->fetchAll();
+
+$sql2 = "SELECT COUNT(*) AS total_teachers FROM users WHERE role = 'teacher'";
+$stmt2 = $conn->prepare($sql2);
+$stmt2->execute();
+$teacher_count = $stmt2->fetch()['total_teachers'];
 ?>
 
 <!DOCTYPE html>
@@ -42,7 +45,7 @@ h2 { color: #8f1a1aff; margin-bottom: 30px; }
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="#">About</a></li>
-        <li class="nav-item"><a class="nav-link" href="login.php">Logout</a></li>
+        <li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>
       </ul>
     </div>
   </div>
@@ -59,12 +62,12 @@ h2 { color: #8f1a1aff; margin-bottom: 30px; }
                 </tr>
             </thead>
             <tbody>
-                <?php foreach($students_data as $student) { ?>
+                <?php foreach($students_data as $student): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($student['Student']); ?></td>
+                        <td><?php echo htmlspecialchars($student['user']); ?></td>
                         <td><?php echo htmlspecialchars($student['grade']); ?></td>
                     </tr>
-                <?php } ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
