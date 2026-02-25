@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 16, 2026 at 04:56 PM
+-- Generation Time: Feb 25, 2026 at 05:43 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -24,6 +24,25 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `teacher_student`
+--
+
+CREATE TABLE `teacher_student` (
+  `id` int(255) NOT NULL,
+  `teacher_id` int(255) NOT NULL,
+  `student_id` int(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `teacher_student`
+--
+
+INSERT INTO `teacher_student` (`id`, `teacher_id`, `student_id`) VALUES
+(1, 2, 3);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -36,8 +55,26 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`user`, `password`, `role`, `grade`, `id`) VALUES
+('Guri123', '$2y$10$6rN5O9fe3tud8u5o5V22G.gemYfH5XZheH0a3f/JIjTXe0bEAiMhi', 'teacher', NULL, 2),
+('student', '$2y$10$XWqtTSq0FGCmARLsbyfileEkv.1gvKfIKRte4l5wbfF2T6Nr3xMq.', 'student', 9, 3),
+('asdhajdajkda', '$2y$10$43ZfebIKHX3UMmFOM4jKMuTsuVfwPlF6oqbeuvqVzAgAYl2OyAJyW', 'student', 10, 4),
+('123', '$2y$10$XQ74mY/uZMcl5HeiDeG0j.5AiN/8BIkNoMeX2dkPqD9ADGe.cgvjy', 'student', 7, 5);
+
+--
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `teacher_student`
+--
+ALTER TABLE `teacher_student`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `teacher_student_unique` (`teacher_id`,`student_id`),
+  ADD KEY `teacher_student_ibfk_2` (`student_id`);
 
 --
 -- Indexes for table `users`
@@ -51,10 +88,27 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `teacher_student`
+--
+ALTER TABLE `teacher_student`
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `teacher_student`
+--
+ALTER TABLE `teacher_student`
+  ADD CONSTRAINT `teacher_student_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `teacher_student_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

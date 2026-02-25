@@ -2,12 +2,22 @@
 session_start();
 require_once('config.php');
 
-if (!isset($_SESSION['user'])) {
+
+if (!isset($_SESSION['user']) || !isset($_SESSION['id'])) {
     header("Location: login.php");
     exit;
 }
 
-$sql = "SELECT user, grade FROM users WHERE role = 'student'";
+
+$role = $_SESSION['role'] ?? null;
+if ($role !== 'student' && $role !== 'teacher') {
+    session_destroy();
+    header("Location: login.php");
+    exit;
+}
+
+
+$sql = "SELECT id, user, grade FROM users WHERE role = 'student'";
 $stmt = $conn->prepare($sql);
 $stmt->execute();
 $students_data = $stmt->fetchAll();
@@ -17,7 +27,6 @@ $stmt2 = $conn->prepare($sql2);
 $stmt2->execute();
 $teacher_count = $stmt2->fetch()['total_teachers'];
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,6 +40,12 @@ body { font-family: 'Tomorrow', sans-serif; background-color: #f8f9fa; }
 .navbar-custom .navbar-brand, .navbar-custom .nav-link { color: white; }
 .table-container { margin-top: 50px; }
 h2 { color: #8f1a1aff; margin-bottom: 30px; }
+
+.my-red-btn {
+  background-color: #8f1a1aff;
+  color: white;
+  margin-bottom: 20px;
+}
 </style>
 </head>
 <body>
@@ -46,12 +61,20 @@ h2 { color: #8f1a1aff; margin-bottom: 30px; }
         <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="#">About</a></li>
         <li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>
+        <?php if($_SESSION['role'] === 'student'): ?>
+          <li class="nav-item"><a class="nav-link" href="my_teachers.php">Your Teachers</a></li>
+        <?php endif; ?>
       </ul>
     </div>
   </div>
 </nav>
 
 <div class="container table-container">
+    <?php if($_SESSION['role'] === 'teacher'): ?>
+  
+        <a href="assign_student.php" class="btn my-red-btn">Assign Student</a>
+    <?php endif; ?>
+
     <h2>Students List</h2>
     <div class="table-responsive">
         <table class="table table-striped table-bordered">
@@ -64,14 +87,14 @@ h2 { color: #8f1a1aff; margin-bottom: 30px; }
             <tbody>
                 <?php foreach($students_data as $student): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($student['user']); ?></td>
-                        <td><?php echo htmlspecialchars($student['grade']); ?></td>
+                        <td><?= htmlspecialchars($student['user']) ?></td>
+                        <td><?= htmlspecialchars($student['grade']) ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </div>
-    <p class="mt-4">Total Teachers: <?php echo $teacher_count; ?></p>
+    <p class="mt-4">Total Teachers: <?= $teacher_count ?></p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

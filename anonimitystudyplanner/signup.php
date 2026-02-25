@@ -14,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password) || empty($role)) {
         $error = "Please fill in all required fields.";
     } else {
-
         $checkSql = "SELECT * FROM users WHERE user = :user";
         $stmtCheck = $conn->prepare($checkSql);
         $stmtCheck->execute(['user' => $username]);
@@ -22,9 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmtCheck->fetch()) {
             $error = "Username already taken.";
         } else {
-  
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
 
             $sql = "INSERT INTO users (user, password, role, grade) VALUES (:user, :password, :role, :grade)";
             $stmt = $conn->prepare($sql);
@@ -35,9 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'grade' => ($role === 'student') ? $grade : null
             ]);
 
+
             $_SESSION['user'] = $username;
             $_SESSION['role'] = $role;
             $_SESSION['grade'] = ($role === 'student') ? $grade : null;
+            $_SESSION['id'] = $conn->lastInsertId();
 
             header("Location: home.php");
             exit;
@@ -45,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

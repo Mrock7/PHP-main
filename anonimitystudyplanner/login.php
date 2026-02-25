@@ -18,9 +18,11 @@ if (isset($_POST['submit'])) {
         $userData = $stmt->fetch();
 
         if ($userData && password_verify($password, $userData['password'])) {
+
             $_SESSION['user'] = $userData['user'];
             $_SESSION['role'] = $userData['role'];
             $_SESSION['grade'] = $userData['grade'] ?? null;
+            $_SESSION['id'] = $userData['id'];
 
             header("Location: home.php");
             exit;
@@ -30,6 +32,8 @@ if (isset($_POST['submit'])) {
     }
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
