@@ -7,25 +7,29 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'teacher') {
     exit;
 }
 
+$teacher_id = $_SESSION['id'];
 
-$sql = "SELECT id, user FROM users WHERE role = 'student'";
-$stmt = $conn->prepare($sql);
+/* Get students */
+$stmt = $conn->prepare("SELECT id, user FROM users WHERE role = 'student'");
 $stmt->execute();
 $students = $stmt->fetchAll();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['student_id'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $student_id = intval($_POST['student_id']);
-    $teacher_id = $_SESSION['id'];
 
+    $insert = $conn->prepare("
+        INSERT IGNORE INTO teacher_student (teacher_id, student_id)
+        VALUES (:tid, :sid)
+    ");
 
-    $check = $conn->prepare("SELECT * FROM student_teacher WHERE student_id = :sid AND teacher_id = :tid");
-    $check->execute(['sid'=>$student_id, 'tid'=>$teacher_id]);
-    if (!$check->fetch()) {
-        $insert = $conn->prepare("INSERT INTO student_teacher (student_id, teacher_id) VALUES (:sid, :tid)");
-        $insert->execute(['sid'=>$student_id, 'tid'=>$teacher_id]);
-    }
+    $insert->execute([
+        'tid' => $teacher_id,
+        'sid' => $student_id
+    ]);
 
     header("Location: home.php");
+    exit;
 }
 ?>
 

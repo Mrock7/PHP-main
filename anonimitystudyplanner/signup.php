@@ -6,10 +6,11 @@ $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
-    $role = $_POST['role'];
-    $grade = $_POST['grade'] ?? null;
+$username = trim($_POST['username']);
+$password = $_POST['password'];
+$role = $_POST['role'];
+$grade = $_POST['grade'] ?? null;
+$teaching = $_POST['teaching'] ?? null;
 
     if (empty($username) || empty($password) || empty($role)) {
         $error = "Please fill in all required fields.";
@@ -23,14 +24,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-            $sql = "INSERT INTO users (user, password, role, grade) VALUES (:user, :password, :role, :grade)";
-            $stmt = $conn->prepare($sql);
-            $stmt->execute([
-                'user' => $username,
-                'password' => $hashedPassword,
-                'role' => $role,
-                'grade' => ($role === 'student') ? $grade : null
-            ]);
+        $sql = "INSERT INTO users (user, password, role, grade, teaching) 
+        VALUES (:user, :password, :role, :grade, :teaching)";
+
+        $stmt = $conn->prepare($sql);
+
+         $stmt->execute([
+    'user' => $username,
+    'password' => $hashedPassword,
+    'role' => $role,
+    'grade' => ($role === 'student') ? $grade : null,
+    'teaching' => ($role === 'teacher') ? $teaching : null
+]);
+
 
 
             $_SESSION['user'] = $username;
@@ -98,19 +104,46 @@ body { font-family: 'Tomorrow', sans-serif; background-color: #f5f5f5; display: 
         <option value="12">Grade 12</option>
     </select>
 
+
+    <select class="form-select mb-3" name="teaching" id="teaching">
+    <option value="" selected>What subject do you teach?</option>
+    <option value="Math">Math</option>
+    <option value="English">English</option>
+    <option value="Science">Science</option>
+    <option value="History">History</option>
+</select>
+
+
     <button class="w-100 btn btn-lg custom-red" type="submit">Sign Up</button>
     <p class="mt-3 text-center">Already have an account? <a href="login.php">Login</a></p>
 </form>
 </main>
 
+
 <script>
-document.getElementById('role').addEventListener('change', function() {
-    document.getElementById('grade').style.display = (this.value === 'student') ? 'block' : 'none';
-});
-window.onload = function() {
-    document.getElementById('grade').style.display = 'none';
+const roleSelect = document.getElementById('role');
+const gradeSelect = document.getElementById('grade');
+const teachingSelect = document.getElementById('teaching');
+
+function toggleFields() {
+    if (roleSelect.value === 'student') {
+        gradeSelect.style.display = 'block';
+        teachingSelect.style.display = 'none';
+    } 
+    else if (roleSelect.value === 'teacher') {
+        gradeSelect.style.display = 'none';
+        teachingSelect.style.display = 'block';
+    } 
+    else {
+        gradeSelect.style.display = 'none';
+        teachingSelect.style.display = 'none';
+    }
 }
+
+roleSelect.addEventListener('change', toggleFields);
+window.onload = toggleFields;
 </script>
+
 
 </body>
 </html>
