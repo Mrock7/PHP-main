@@ -1,27 +1,70 @@
 <?php
 session_start();
 require_once('config.php');
-if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'teacher') header("Location: home.php");
+
+if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'teacher') {
+    header("Location: login.php");
+    exit;
+}
+
 $teacher_id = $_SESSION['id'];
-$stmt = $conn->prepare("SELECT u.id, u.user FROM users u JOIN teacher_student ts ON u.id = ts.student_id WHERE ts.teacher_id = :tid");
+
+$stmt = $conn->prepare("
+SELECT u.id, u.user 
+FROM users u 
+JOIN teacher_student ts ON u.id = ts.student_id 
+WHERE ts.teacher_id = :tid
+");
 $stmt->execute(['tid' => $teacher_id]);
 $students = $stmt->fetchAll();
+
 if (isset($_GET['delete_student'])) {
     $student_id = intval($_GET['delete_student']);
-    $conn->prepare("DELETE FROM teacher_student WHERE teacher_id = :tid AND student_id = :sid")->execute(['tid' => $teacher_id,'sid' => $student_id]);
+
+
+    $conn->prepare("DELETE FROM assignments WHERE teacher_id = :tid AND student_id = :sid")->execute([
+        'tid' => $teacher_id,
+        'sid' => $student_id
+    ]);
+
+    $conn->prepare("DELETE FROM teacher_student WHERE teacher_id = :tid AND student_id = :sid")->execute([
+        'tid' => $teacher_id,
+        'sid' => $student_id
+    ]);
+
     header("Location: edit_students.php");
+    exit;
 }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_assignment'])) {
     $student_id = intval($_POST['student_id']);
     $type = $_POST['type'];
-    $title = $_POST['title'];
-    $instructions = $_POST['instructions'];
-    $word_count = ($type==='paper') ? intval($_POST['word_count']) : null;
+    $title = trim($_POST['title']);
+    $instructions = trim($_POST['instructions']);
+    $word_count = ($type === 'paper') ? intval($_POST['word_count']) : null;
     $due_date = $_POST['due_date'];
-    $conn->prepare("INSERT INTO assignments (teacher_id, student_id, type, title, instructions, word_count, due_date) VALUES (:tid,:sid,:type,:title,:instructions,:word_count,:due_date)")->execute([
-        'tid'=>$teacher_id,'sid'=>$student_id,'type'=>$type,'title'=>$title,'instructions'=>$instructions,'word_count'=>$word_count,'due_date'=>$due_date
-    ]);
+
+    $check = $conn->prepare("SELECT 1 FROM teacher_student WHERE teacher_id = :tid AND student_id = :sid");
+    $check->execute(['tid' => $teacher_id, 'sid' => $student_id]);
+
+    if ($check->fetch()) {
+        $conn->prepare("
+            INSERT INTO assignments 
+            (teacher_id, student_id, type, title, instructions, word_count, due_date) 
+            VALUES (:tid,:sid,:type,:title,:instructions,:word_count,:due_date)
+        ")->execute([
+            'tid' => $teacher_id,
+            'sid' => $student_id,
+            'type' => $type,
+            'title' => $title,
+            'instructions' => $instructions,
+            'word_count' => $word_count,
+            'due_date' => $due_date
+        ]);
+    }
+
     header("Location: edit_students.php");
+    exit;
 }
 ?>
 <!DOCTYPE html>

@@ -4,7 +4,7 @@ require_once('config.php');
 
 $error = "";
 
-if (isset($_POST['submit'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $username = trim($_POST['username']);
     $password = $_POST['password'];

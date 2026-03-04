@@ -7,16 +7,19 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'teacher') {
     exit;
 }
 
-$teacher_id = $_SESSION['id'];
+$teacher_id = (int)$_SESSION['id'];
 
-/* Get students */
 $stmt = $conn->prepare("SELECT id, user FROM users WHERE role = 'student'");
 $stmt->execute();
 $students = $stmt->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $student_id = intval($_POST['student_id']);
+    if (!isset($_POST['student_id']) || !is_numeric($_POST['student_id'])) {
+        die("Invalid student selection");
+    }
+
+    $student_id = (int)$_POST['student_id'];
 
     $insert = $conn->prepare("
         INSERT IGNORE INTO teacher_student (teacher_id, student_id)
@@ -24,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ");
 
     $insert->execute([
-        'tid' => $teacher_id,
-        'sid' => $student_id
+        ':tid' => $teacher_id,
+        ':sid' => $student_id
     ]);
 
     header("Location: home.php");
